@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173b32">
+  <meta name="description" content="Painel interativo de monitoramento ambiental urbano do projeto ClimaUrbano.">
+  <meta name="climaurbano-api-base" content="">
+  <title>ClimaUrbano — Observatório ambiental</title>
+  <style>
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#203a32;background:#f4f7f4;font-synthesis:none;text-rendering:optimizeLegibility;--ink:#173b32;--muted:#71827a;--line:#e2e9e3;--green:#167d68;--green-soft:#e6f3ed;--orange:#d78a35;--blue:#587bd6;--red:#bd5a4b}
+    *{box-sizing:border-box}body{margin:0;min-width:320px}button,input,select{font:inherit}button,select{cursor:pointer}a{color:inherit}
+    .topbar{height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 max(22px,calc((100vw - 1260px)/2));position:sticky;top:0;z-index:5}
+    .brand{display:flex;align-items:center;gap:11px;text-decoration:none}.brand-mark{width:38px;height:38px;border-radius:13px;background:var(--ink);color:#d7f0e4;display:grid;place-items:center;font-size:27px;font-weight:800}.brand strong{display:block;color:var(--ink);font-size:16px;letter-spacing:-.02em}.brand small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+    .top-actions{display:flex;align-items:center;gap:16px}.live-status{display:flex;align-items:center;gap:8px;color:#5a776b;font-size:13px}.live-status i{width:8px;height:8px;background:#3f9b72;border-radius:50%;box-shadow:0 0 0 4px #e3f3e9}.refresh{border:0;border-radius:9px;background:var(--ink);color:white;padding:10px 15px;font-weight:650;font-size:13px}.refresh:hover{background:#235447}.refresh:disabled{opacity:.6;cursor:wait}
+    main{max-width:1260px;margin:auto;padding:28px 22px 46px}.hero{display:flex;align-items:center;justify-content:space-between;gap:32px;padding:18px 0 26px}.eyebrow{font-size:11px;font-weight:750;letter-spacing:.14em;color:#648273;margin:0 0 10px}.hero h1{font-size:clamp(34px,5vw,51px);line-height:1.05;letter-spacing:-.055em;color:var(--ink);margin:0}.hero h1 em{font-family:Georgia,serif;color:var(--green);font-weight:500}.hero-copy{max-width:560px;color:#66796f;font-size:16px;line-height:1.55;margin:13px 0 0}.hero-meta{min-width:250px;max-width:330px;border-left:1px solid #cedbd2;padding:8px 0 8px 22px}.hero-meta span{font-size:12px;color:#71827a}.hero-meta strong{display:block;font-size:18px;color:var(--ink);margin:5px 0}.hero-meta .coord{display:block;font-size:12px;color:#829088;margin-top:7px}
+    .filter-bar{background:white;border:1px solid var(--line);border-radius:14px;padding:15px 17px;display:flex;align-items:end;gap:13px;flex-wrap:wrap;box-shadow:0 4px 16px #1d45360a}.filter-bar label{display:grid;gap:6px;font-size:12px;color:#697b72;font-weight:650}.filter-bar select,.filter-bar input{min-height:39px;border:1px solid #d9e2dc;background:#fff;border-radius:8px;padding:8px 10px;color:var(--ink);font-size:13px;min-width:145px}.filter-bar input{min-width:190px}.range-shortcuts{display:flex;gap:5px;padding-bottom:1px}.range-shortcuts button{background:#f4f7f5;color:#60736a;border:1px solid #e1e8e2;border-radius:7px;padding:9px 10px;font-size:12px}.range-shortcuts button.active{background:var(--green-soft);border-color:#bcdccc;color:#23674f;font-weight:700}.filter-count{margin-left:auto;padding:10px 4px;color:#74847c;font-size:12px;white-space:nowrap}.filter-count strong{color:var(--ink);font-size:16px;margin-right:4px}
+    .source-legend{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:17px 2px 21px;font-size:11px;color:#809087}.source-legend>span:first-child{font-weight:750;letter-spacing:.12em}.tag{display:inline-flex;align-items:center;gap:6px;color:#52665c;font-size:12px;white-space:nowrap}.tag i{width:8px;height:8px;border-radius:50%;background:var(--green)}.tag.simulated i{background:var(--orange)}.tag.online i{background:var(--blue)}.tag.esp32 i{background:var(--green)}.legend-note{margin-left:auto}
+    .section-title{display:flex;justify-content:space-between;align-items:end;gap:16px;margin:4px 0 13px}.section-title h2{font-size:23px;letter-spacing:-.035em;color:var(--ink);margin:0}.section-title .eyebrow{margin-bottom:4px}.section-caption{color:#7c8b82;font-size:12px}
+    .latest-stamp{display:flex;align-items:center;gap:10px;color:#77877f;font-size:12px}.metrics-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.metric-card{min-height:118px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:0 2px 10px #1d453607}.metric-heading{display:flex;align-items:center;gap:8px;font-size:12px;color:#718178}.metric-icon{width:25px;height:25px;background:#eef5f0;color:var(--green);border-radius:8px;display:grid;place-items:center;font-size:15px}.metric-value{color:var(--ink);font-size:29px;font-weight:720;letter-spacing:-.045em;margin:11px 0 6px}.metric-value small{font-size:13px;font-weight:500;color:#74847c;margin-left:4px;letter-spacing:0}.metric-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:#8a9790}.metric-note{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.empty-metric{color:#9aa69f;font-size:23px}
+    .charts-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.panel{background:#fff;border:1px solid var(--line);border-radius:13px;padding:17px 18px;box-shadow:0 2px 10px #1d453607}.chart-panel{min-width:0}.panel-heading{display:flex;justify-content:space-between;align-items:start;gap:12px}.panel-heading h3{font-size:15px;letter-spacing:-.02em;color:var(--ink);margin:0}.panel-heading p{font-size:12px;color:#839087;margin:4px 0 0}.chart-unit{font-size:11px;color:#829087;background:#f3f6f3;border-radius:6px;padding:4px 7px}.chart{width:100%;height:218px;margin-top:11px;overflow:visible}.chart svg{width:100%;height:100%;overflow:visible}.chart .gridline{stroke:#eaf0eb;stroke-dasharray:4 5;stroke-width:1}.chart .axis-label{fill:#839087;font-size:10px}.chart .sim-line{stroke:var(--orange);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}.chart .online-line{stroke:var(--blue);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}.chart .esp-line{stroke:var(--green);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}.chart circle{stroke:white;stroke-width:1.5}.chart .sim-dot{fill:var(--orange)}.chart .online-dot{fill:var(--blue)}.chart .esp-dot{fill:var(--green)}.chart-legend{display:flex;gap:13px;flex-wrap:wrap;margin-top:1px}.chart-legend .tag{font-size:11px}.chart-empty{height:218px;display:grid;place-items:center;text-align:center;color:#829087;font-size:13px;padding:20px}
+    .lower-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:13px;margin-top:13px}.map-panel iframe{width:100%;height:265px;border:0;border-radius:9px;margin-top:13px;background:#edf2ee}.map-foot{display:flex;justify-content:space-between;gap:10px;margin-top:10px;color:#829087;font-size:11px}.map-foot a{color:#3b8069}.insight-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:13px}.stat-list{display:grid;gap:10px;margin-top:16px}.stat-row{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px;border-bottom:1px solid #edf1ed;padding-bottom:10px;font-size:12px;color:#738279}.stat-row:last-child{border:0;padding-bottom:0}.stat-row strong{color:var(--ink);font-size:13px}.comparison{display:grid;gap:2px;margin-top:13px}.compare-day{display:grid;grid-template-columns:47px 1fr;gap:9px;align-items:start;border-bottom:1px solid #edf1ed;padding:7px 0}.compare-day>strong{color:#738279;font-size:11px;padding-top:3px}.compare-bars{display:grid;gap:5px}.compare-source{display:grid;grid-template-columns:94px 1fr 39px;align-items:center;gap:7px}.compare-source .tag{font-size:10px}.compare-source .tag i{width:7px;height:7px}.compare-source b{color:#52665b;font-size:11px}.bar-track{height:8px;background:#eff3ef;border-radius:99px;overflow:hidden}.bar-fill{height:100%;background:linear-gradient(90deg,#5ea88a,#21765f);border-radius:99px}.analysis-copy{font-size:13px;line-height:1.55;color:#6c7e74;margin:14px 0}.analysis-highlight{display:flex;gap:10px;align-items:center;background:#f1f7f2;border-radius:9px;padding:12px;margin-top:12px}.analysis-highlight b{color:var(--ink);font-size:13px}.analysis-highlight small{color:#76857d;display:block;margin-top:3px;font-size:11px}.external-current{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:15px}.external-current div{background:#f5f7fc;border-radius:9px;padding:12px}.external-current span{display:block;color:#7c89a4;font-size:11px}.external-current strong{display:block;color:#2d477f;font-size:21px;margin-top:4px}.external-note{color:#7e8b82;font-size:11px;line-height:1.5;margin:12px 0 0}.notice{background:#fff5e6;border-left:4px solid #dda14d;color:#72551f;border-radius:7px;padding:12px 14px;font-size:12px;line-height:1.55;margin:16px 0}.source-warning{background:#eef5f9;border-color:#7198ba;color:#385a74}
+    .table-panel{margin-top:14px;padding:0;overflow:hidden}.table-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line)}.table-head h3{color:var(--ink);font-size:15px;margin:0}.table-tools{display:flex;gap:8px;align-items:center}.table-tools span{color:#839087;font-size:11px}.download{border:1px solid #dce6df;border-radius:7px;background:#fff;color:#456454;padding:7px 10px;font-size:11px;font-weight:650}.download:hover{background:#f2f7f3}.table-scroll{overflow:auto}table{width:100%;border-collapse:collapse;min-width:720px}th,td{text-align:left;padding:10px 16px;border-bottom:1px solid #edf1ed;white-space:nowrap;font-size:12px}th{color:#829087;font-size:10px;text-transform:uppercase;letter-spacing:.08em;background:#fbfcfb}td{color:#52665b}tbody tr:last-child td{border:0}.empty-table{text-align:center;color:#839087;padding:26px}.footnotes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}.footnote{border:1px solid var(--line);background:#fbfcfb;border-radius:10px;padding:13px 15px;color:#77867e;font-size:11px;line-height:1.55}.footnote strong{display:block;color:#405e4f;margin-bottom:4px;font-size:12px}.footer{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-top:26px;padding-top:17px;border-top:1px solid #dfe7e0;color:#849088;font-size:11px}.footer a{color:#537361}
+    @media(max-width:900px){.hero{align-items:start}.metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lower-grid{grid-template-columns:1fr}.legend-note{margin-left:0}.filter-count{margin-left:0}.charts-grid{gap:10px}}
+    @media(max-width:620px){.topbar{height:62px;padding:0 15px}.top-actions{gap:9px}.live-status{font-size:0}.live-status i{width:9px;height:9px}.refresh{padding:9px 11px}.brand-mark{width:34px;height:34px}.brand strong{font-size:14px}.brand small{font-size:10px}main{padding:20px 14px 35px}.hero{display:block;padding:10px 0 20px}.hero-meta{border-left:0;border-top:1px solid #cedbd2;padding:12px 0 0;margin-top:18px;max-width:none}.filter-bar{align-items:stretch;padding:13px}.filter-bar label{flex:1 1 45%}.filter-bar select,.filter-bar input{width:100%;min-width:0}.range-shortcuts{flex:1;justify-content:space-between}.range-shortcuts button{flex:1}.section-title{align-items:start;flex-direction:column}.section-title h2{font-size:21px}.charts-grid{grid-template-columns:1fr}.chart{height:205px}.metrics-grid{gap:8px}.metric-card{padding:12px;min-height:110px}.metric-value{font-size:25px}.metric-heading{font-size:11px}.metric-foot{align-items:start;flex-direction:column}.insight-grid{grid-template-columns:1fr}.footnotes{grid-template-columns:1fr}.footer{align-items:start;flex-direction:column}.table-head{align-items:start;flex-direction:column}.map-foot{flex-direction:column}.chart-panel{padding:15px 13px}.compare-source{grid-template-columns:84px 1fr 35px}.compare-source .tag{font-size:9px}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#inicio" aria-label="ClimaUrbano, início">
+      <span class="brand-mark" aria-hidden="true">°</span>
+      <span><strong>ClimaUrbano</strong><small>observatório ambiental</small></span>
+    </a>
+    <div class="top-actions">
+      <span class="live-status" id="status" role="status"><i></i>Preparando dados</span>
+      <button class="refresh" id="refresh" type="button">Atualizar painel</button>
+    </div>
+  </header>
+  <main id="inicio">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">MONITORAMENTO AMBIENTAL URBANO</p>
+        <h1>O clima da cidade,<br><em>em contexto.</em></h1>
+        <p class="hero-copy">Explore as condições meteorológicas, acompanhe tendências e compare cada origem de dado em um painel interativo.</p>
+      </div>
+      <div class="hero-meta">
+        <p class="eyebrow">ESTAÇÃO DE REFERÊNCIA</p>
+        <strong>Carapicuíba — SP</strong>
+        <span>Área urbana da Região Metropolitana de São Paulo</span>
+        <span class="coord">23,5329° S · 46,8358° O · ponto de referência do projeto</span>
+      </div>
+    </section>
+
+    <section class="filter-bar" aria-label="Filtros do painel">
+      <label>Estação
+        <select id="station"><option value="carapicuiba">Carapicuíba — SP</option></select>
+      </label>
+      <label>Origem dos dados
+        <select id="source">
+          <option value="all">Todas, identificadas por cor</option>
+          <option value="simulated">Simulados</option>
+          <option value="online">Open-Meteo — estimativa online</option>
+          <option value="esp32">Estação física — ESP32</option>
+        </select>
+      </label>
+      <label>De<input id="start" type="datetime-local" aria-label="Data e hora inicial"></label>
+      <label>Até<input id="end" type="datetime-local" aria-label="Data e hora final"></label>
+      <div class="range-shortcuts" aria-label="Período rápido">
+        <button data-range="24" type="button">24 h</button>
+        <button data-range="168" type="button" class="active">7 dias</button>
+        <button data-range="720" type="button">30 dias</button>
+      </div>
+      <div class="filter-count"><strong id="count">—</strong> registros no intervalo</div>
+    </section>
+
+    <div class="source-legend" aria-label="Legenda das origens">
+      <span>ORIGEM</span><span class="tag esp32"><i></i>Estação física</span><span class="tag simulated"><i></i>Simulado</span><span class="tag online"><i></i>Open-Meteo</span>
+      <span class="legend-note">As séries são mantidas separadas para evitar misturar leituras e estimativas.</span>
+    </div>
+
+    <section class="section-title">
+      <div><p class="eyebrow">CONDIÇÕES NO PERÍODO</p><h2>Última medição</h2></div>
+      <div class="latest-stamp" id="latest-label">Carregando origem e horário…</div>
+    </section>
+    <section class="metrics-grid" id="metrics" aria-label="Indicadores ambientais"></section>
+    <div class="notice"><strong>Dados de demonstração:</strong> as séries identificadas como “Simulado” são sintéticas e não foram coletadas por sensores. Os dados “Open-Meteo” são estimativas de modelos meteorológicos para a região, não medições locais. A estação física aparecerá quando o ESP32 estiver conectado.</div>
+    <div class="notice source-warning" id="physical-note" hidden></div>
+
+    <section class="section-title" style="margin-top:25px">
+      <div><p class="eyebrow">SÉRIES TEMPORAIS</p><h2>Histórico ambiental</h2></div>
+      <span class="section-caption">Médias horárias no intervalo selecionado · passe o cursor sobre os pontos</span>
+    </section>
+    <section class="charts-grid" id="charts" aria-label="Gráficos interativos"></section>
+
+    <section class="lower-grid">
+      <article class="panel map-panel">
+        <div class="panel-heading"><div><h3>Estação no território</h3><p>Localização de referência para Carapicuíba — SP</p></div><span class="tag online"><i></i>Mapa aberto</span></div>
+        <iframe title="Mapa de referência da estação em Carapicuíba, São Paulo" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=-46.8758%2C-23.5629%2C-46.7958%2C-23.5029&amp;layer=mapnik&amp;marker=-23.5329%2C-46.8358"></iframe>
+        <div class="map-foot"><span>Coordenadas aproximadas; não comprovam instalação de equipamento no local.</span><a href="https://www.openstreetmap.org/?mlat=-23.5329&amp;mlon=-46.8358#map=14/-23.5329/-46.8358" target="_blank" rel="noreferrer">Ver mapa ampliado</a></div>
+      </article>
+      <article class="panel">
+        <div class="panel-heading"><div><h3>Referência meteorológica online</h3><p>Open-Meteo · estimativa regional atual</p></div><span class="tag online"><i></i><span id="online-badge">consultando</span></span></div>
+        <div id="online-current"><div class="external-current"><div><span>Temperatura</span><strong>—</strong></div><div><span>Umidade</span><strong>—</strong></div><div><span>Pressão</span><strong>—</strong></div><div><span>Vento</span><strong>—</strong></div></div></div>
+        <p class="external-note" id="online-note">Valores estimados por modelos meteorológicos. A conexão online é opcional; o painel continua mostrando as séries simuladas se a fonte externa estiver indisponível.</p>
+      </article>
+    </section>
+
+    <section class="insight-grid">
+      <article class="panel">
+        <div class="panel-heading"><div><h3>Estatísticas por origem</h3><p>Resumo sem misturar dados físicos, simulados e online</p></div></div>
+        <div class="stat-list" id="stats"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-heading"><div><h3>Comparativo histórico</h3><p>Média diária de temperatura por origem</p></div></div>
+        <div class="comparison" id="comparison"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-heading"><div><h3>Análise experimental</h3><p>Anomalias e tendência exploratória, por origem</p></div><span class="chart-unit">DIDÁTICO</span></div>
+        <div id="analysis"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-heading"><div><h3>Próximas horas</h3><p>Previsão modelada online e tendência simulada</p></div></div>
+        <div id="forecast"></div>
+      </article>
+    </section>
+
+    <section class="section-title" style="margin-top:26px">
+      <div><p class="eyebrow">CONSULTA DE REGISTROS</p><h2>Medições recentes</h2></div>
+      <span class="section-caption" id="table-caption">Até 24 registros mais recentes</span>
+    </section>
+    <section class="panel table-panel">
+      <div class="table-head"><h3>Histórico no período selecionado</h3><div class="table-tools"><span>CSV com os filtros atuais</span><button class="download" id="download" type="button">Baixar CSV</button></div></div>
+      <div class="table-scroll"><table><thead><tr><th>Data e hora</th><th>Origem</th><th>Temperatura</th><th>Umidade</th><th>Pressão</th><th>Vento</th><th>Precipitação</th></tr></thead><tbody id="history"></tbody></table></div>
+    </section>
+
+    <div class="footnotes">
+      <div class="footnote"><strong>Como interpretar</strong>O simulador demonstra o fluxo e os gráficos do sistema. Não substitui coleta, calibração ou validação de instrumentos. Luminosidade e qualidade do ar aparecem como valores brutos simulados, sem conversão para lux ou concentração certificada.</div>
+      <div class="footnote"><strong>Preparado para evolução</strong>O projeto inclui API de ingestão com identificação de origem <code>esp32</code>. Quando a estação física estiver disponível, o backend poderá alimentar estas séries sem misturá-las com o histórico simulado ou com a estimativa meteorológica.</div>
+    </div>
+    <footer class="footer"><a href="#inicio">ClimaUrbano · Projeto acadêmico</a><span>Simulado, estimativa online e ESP32 aparecem como fontes diferentes.</span><span id="updated">Atualização pendente</span></footer>
+  </main>
+
+  <script>
+    "use strict";
+    const $ = (id) => document.getElementById(id);
+    const sources = {
+      simulated: { label: "Simulado", cls: "simulated", color: "#d78a35" },
+      online: { label: "Open-Meteo", cls: "online", color: "#587bd6" },
+      esp32: { label: "Estação física", cls: "esp32", color: "#167d68" }
+    };
+    const metrics = [
+      { key: "temperature", label: "Temperatura", unit: "°C", icon: "◉", digits: 1 },
+      { key: "humidity", label: "Umidade relativa", unit: "%", icon: "◌", digits: 1 },
+      { key: "pressure", label: "Pressão atmosférica", unit: "hPa", icon: "⌁", digits: 1 },
+      { key: "wind_speed", label: "Velocidade do vento", unit: "km/h", icon: "↟", digits: 1 },
+      { key: "precipitation", label: "Precipitação", unit: "mm", icon: "⌖", digits: 1 },
+      { key: "luminosity", label: "Luminosidade bruta", unit: "ADC", icon: "☼", digits: 0 },
+      { key: "air_quality_raw", label: "Qualidade do ar bruta", unit: "ADC", icon: "◍", digits: 0 }
+    ];
+    const chartMetrics = [
+      { key: "temperature", title: "Temperatura do ar", unit: "°C" },
+      { key: "humidity", title: "Umidade relativa", unit: "%" },
+      { key: "pressure", title: "Pressão atmosférica", unit: "hPa" },
+      { key: "wind_speed", title: "Velocidade do vento", unit: "km/h" },
+      { key: "precipitation", title: "Precipitação por hora", unit: "mm" },
+      { key: "luminosity", title: "Luminosidade bruta do LDR", unit: "ADC" }
+    ];
+    const state = { simulated: [], online: [], esp32: [], currentOnline: null, forecastOnline: [], onlineError: "", esp32Error: "" };
+    const now = new Date();
+    const nowHour = new Date(now); nowHour.setMinutes(0, 0, 0);
+    function localValue(date) {
+      const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+      return d.toISOString().slice(0, 16);
+    }
+    function noise(t, salt) {
+      const n = Math.sin((t / 3600000 + salt) * 12.9898) * 43758.5453123;
+      return n - Math.floor(n);
+    }
+    function makeSimulated() {
+      const out = [];
+      const start = new Date(nowHour.getTime() - 7 * 24 * 3600000);
+      for (let i = 0; i <= 168; i++) {
+        const d = new Date(start.getTime() + i * 3600000);
+        const h = Number(new Intl.DateTimeFormat("en-US", { timeZone: "America/Sao_Paulo", hour: "2-digit", hourCycle: "h23" }).format(d));
+        const t = d.getTime();
+        const day = Math.sin(((h - 8) / 24) * Math.PI * 2);
+        const r = (salt) => noise(t, salt);
+        const rain = r(31) > 0.94 ? +(r(32) * 2.2).toFixed(1) : 0;
+        out.push({
+          timestamp: d.toISOString(), data_source: "simulated",
+          temperature: +(21 + 5.2 * day + (r(1) - 0.5) * 2.4).toFixed(1),
+          humidity: Math.max(32, Math.min(96, +(67 - 13 * day + (r(2) - 0.5) * 12).toFixed(1))),
+          pressure: +(1014 + (r(3) - 0.5) * 8 + Math.sin(i / 15) * 1.4).toFixed(1),
+          wind_speed: +(5 + r(4) * 14 + Math.max(0, day) * 3).toFixed(1),
+          precipitation: rain,
+          luminosity: Math.round(Math.max(0, (h > 6 && h < 18 ? 280 + 920 * Math.sin(((h - 6) / 12) * Math.PI) : 0) + (r(5) - 0.5) * 150)),
+          air_quality_raw: Math.round(460 + r(6) * 600)
+        });
+      }
+      return out;
+    }
+    function asNumber(v) { if (v === null || v === undefined || v === "") return null; const n = Number(v); return Number.isFinite(n) ? n : null; }
+    function apiDate(value, offsetSeconds) {
+      if (!value) return new Date().toISOString();
+      const utcLike = /(?:Z|[+-]\d{2}:\d{2})$/.test(value) ? value : value + "Z";
+      const instant = Date.parse(utcLike);
+      return new Date(instant - (Number(offsetSeconds) || 0) * 1000).toISOString();
+    }
+    async function loadOnline() {
+      const url = new URL("https://api.open-meteo.com/v1/forecast");
+      url.search = new URLSearchParams({
+        latitude: "-23.5329", longitude: "-46.8358",
+        current: "temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,pressure_msl,wind_speed_10m,wind_direction_10m",
+        hourly: "temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m,precipitation,shortwave_radiation",
+        past_days: "7", forecast_days: "1", timezone: "America/Sao_Paulo"
+      }).toString();
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 9000);
+      try {
+        const response = await fetch(url, { signal: controller.signal, headers: { Accept: "application/json" } });
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const json = await response.json();
+        const offsetSeconds = Number(json.utc_offset_seconds) || 0;
+        state.currentOnline = {
+          timestamp: apiDate(json.current?.time, offsetSeconds),
+          data_source: "online",
+          temperature: asNumber(json.current?.temperature_2m),
+          humidity: asNumber(json.current?.relative_humidity_2m),
+          feels_like: asNumber(json.current?.apparent_temperature),
+          precipitation: asNumber(json.current?.precipitation),
+          pressure: asNumber(json.current?.pressure_msl),
+          wind_speed: asNumber(json.current?.wind_speed_10m),
+          wind_direction: asNumber(json.current?.wind_direction_10m),
+          luminosity: null, air_quality_raw: null
+        };
+        const hours = json.hourly?.time || [];
+        state.online = hours.map((time, i) => ({
+          timestamp: apiDate(time, offsetSeconds), data_source: "online",
+          temperature: asNumber(json.hourly.temperature_2m?.[i]),
+          humidity: asNumber(json.hourly.relative_humidity_2m?.[i]),
+          pressure: asNumber(json.hourly.pressure_msl?.[i]),
+          wind_speed: asNumber(json.hourly.wind_speed_10m?.[i]),
+          precipitation: asNumber(json.hourly.precipitation?.[i]),
+          luminosity: null, air_quality_raw: null
+        }));
+        const currentTime = new Date(state.currentOnline.timestamp).getTime();
+        state.forecastOnline = state.online.filter((row) => new Date(row.timestamp).getTime() >= currentTime).slice(0, 7);
+        state.onlineError = "";
+      } catch (error) {
+        state.currentOnline = null; state.online = []; state.forecastOnline = [];
+        state.onlineError = error instanceof Error ? error.message : "falha de conexão";
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+    async function loadPhysical() {
+      const base = document.querySelector('meta[name="climaurbano-api-base"]').content.trim().replace(/\/$/, "");
+      if (!base) { state.esp32 = []; state.esp32Error = ""; return; }
+      try {
+        const url = base + "/weather/history?" + new URLSearchParams({ station_id: "carapicuiba-001", data_source: "esp32", limit: "1000" });
+        const response = await fetch(url, { headers: { Accept: "application/json" } });
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const rows = await response.json();
+        state.esp32 = Array.isArray(rows) ? rows.map((row) => ({
+          timestamp: row.timestamp, data_source: "esp32",
+          temperature: asNumber(row.temperature), humidity: asNumber(row.humidity),
+          pressure: asNumber(row.pressure), wind_speed: asNumber(row.wind_speed),
+          precipitation: asNumber(row.precipitation), luminosity: asNumber(row.luminosity),
+          air_quality_raw: asNumber(row.air_quality_raw)
+        })) : [];
+        state.esp32Error = "";
+      } catch (error) {
+        state.esp32Error = error instanceof Error ? error.message : "falha de conexão";
+        state.esp32 = [];
+      }
+    }
+    function fmt(value, digits) {
+      if (value === null || value === undefined || !Number.isFinite(Number(value))) return "—";
+      return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: digits == null ? 1 : digits }).format(Number(value));
+    }
+    function dLabel(value, opts) {
+      if (!value) return "—";
+      return new Intl.DateTimeFormat("pt-BR", Object.assign({ timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }, opts || {})).format(new Date(value));
+    }
+    function sourceTag(source) {
+      const meta = sources[source];
+      return '<span class="tag ' + meta.cls + '"><i></i>' + meta.label + '</span>';
+    }
+    function selectedSource() { return $("source").value; }
+    function rangeBounds() {
+      const a = $("start").value ? new Date($("start").value).getTime() : -Infinity;
+      const b = $("end").value ? new Date($("end").value).getTime() : Infinity;
+      return [a, b];
+    }
+    function withinRange(row) {
+      const [a, b] = rangeBounds();
+      const t = new Date(row.timestamp).getTime();
+      return t >= a && t <= b;
+    }
+    function dataBySource(source) {
+      if (source === "online") return state.online.filter(withinRange);
+      if (source === "esp32") return state.esp32.filter(withinRange);
+      return state.simulated.filter(withinRange);
+    }
+    function activeSources() {
+      const selected = selectedSource();
+      return selected === "all" ? ["simulated", "online", "esp32"] : [selected];
+    }
+    function visibleRows() {
+      return activeSources().flatMap((source) => dataBySource(source)).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    }
+    function latestSelected() {
+      const source = selectedSource();
+      if (source === "esp32") return state.esp32.filter(withinRange).slice(-1)[0] || null;
+      if (source === "online") return state.currentOnline && withinRange(state.currentOnline) ? state.currentOnline : dataBySource("online").slice(-1)[0] || null;
+      if (source === "simulated") return dataBySource("simulated").slice(-1)[0] || null;
+      const candidates = [dataBySource("simulated").slice(-1)[0], state.currentOnline && withinRange(state.currentOnline) ? state.currentOnline : dataBySource("online").slice(-1)[0]].filter(Boolean);
+      return candidates.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)).slice(-1)[0] || null;
+    }
+    function renderMetrics() {
+      const latest = latestSelected();
+      $("latest-label").innerHTML = latest ? sourceTag(latest.data_source) + '<span>registrada ' + dLabel(latest.timestamp) + '</span>' : "Nenhuma medição nesta origem e intervalo";
+      $("metrics").innerHTML = metrics.map((m) => {
+        const val = latest ? latest[m.key] : null;
+        const note = m.key === "luminosity" && val != null ? "sem calibração em lux" : m.key === "air_quality_raw" && val != null ? "valor experimental bruto" : "";
+        return '<article class="metric-card"><div class="metric-heading"><span class="metric-icon" aria-hidden="true">' + m.icon + '</span>' + m.label + '</div><div class="metric-value ' + (val == null ? "empty-metric" : "") + '">' + fmt(val, m.digits) + (val == null ? "" : '<small>' + m.unit + '</small>') + '</div><div class="metric-foot">' + (latest ? sourceTag(latest.data_source) : '<span>Sem dados para este filtro</span>') + '<span class="metric-note">' + note + '</span></div></article>';
+      }).join("");
+    }
+    function chartMarkup(metric) {
+      const selected = activeSources().filter((s) => dataBySource(s).some((row) => row[metric.key] != null));
+      if (!selected.length) return '<div class="chart-empty">Não há dados desta variável para a origem e o período selecionados.</div>';
+      const all = selected.flatMap((s) => dataBySource(s).filter((row) => Number.isFinite(row[metric.key])));
+      if (!all.length) return '<div class="chart-empty">Não há dados neste intervalo.</div>';
+      const values = all.map((r) => r[metric.key]);
+      let min = Math.min(...values), max = Math.max(...values);
+      if (min === max) { min -= 1; max += 1; }
+      const pad = (max - min) * 0.12; min -= pad; max += pad;
+      const W = 700, H = 205, L = 43, R = 12, T = 12, B = 26, PW = W - L - R, PH = H - T - B;
+      const xTime = all.map((r) => new Date(r.timestamp).getTime());
+      const tMin = Math.min(...xTime), tMax = Math.max(...xTime);
+      const x = (t) => L + (tMax === tMin ? PW / 2 : (t - tMin) / (tMax - tMin) * PW);
+      const y = (v) => T + (max - v) / (max - min) * PH;
+      let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + metric.title + ' no intervalo selecionado">';
+      for (let i = 0; i < 4; i++) {
+        const yy = T + PH * i / 3;
+        const label = max - (max - min) * i / 3;
+        svg += '<line class="gridline" x1="' + L + '" y1="' + yy + '" x2="' + (W - R) + '" y2="' + yy + '"></line><text class="axis-label" x="1" y="' + (yy + 3) + '">' + fmt(label, 0) + '</text>';
+      }
+      selected.forEach((source) => {
+        const rows = dataBySource(source).filter((r) => Number.isFinite(r[metric.key]));
+        if (!rows.length) return;
+        const cls = source === "simulated" ? "sim" : source === "online" ? "online" : "esp";
+        const sample = rows.length > 80 ? rows.filter((_, i) => i % Math.ceil(rows.length / 80) === 0 || i === rows.length - 1) : rows;
+        const pts = sample.map((row) => x(new Date(row.timestamp).getTime()) + "," + y(row[metric.key])).join(" ");
+        svg += '<polyline class="' + cls + '-line" points="' + pts + '"></polyline>';
+        sample.forEach((row) => {
+          const title = dLabel(row.timestamp) + " · " + sources[source].label + " · " + fmt(row[metric.key]) + " " + metric.unit;
+          svg += '<circle class="' + cls + '-dot" cx="' + x(new Date(row.timestamp).getTime()) + '" cy="' + y(row[metric.key]) + '" r="3"><title>' + title + '</title></circle>';
+        });
+      });
+      svg += '<text class="axis-label" x="' + L + '" y="' + (H - 4) + '">' + dLabel(new Date(tMin).toISOString(), { hour: "2-digit", minute: undefined }) + '</text><text class="axis-label" text-anchor="end" x="' + (W - R) + '" y="' + (H - 4) + '">' + dLabel(new Date(tMax).toISOString(), { hour: "2-digit", minute: undefined }) + '</text></svg>';
+      return svg;
+    }
+    function renderCharts() {
+      $("charts").innerHTML = chartMetrics.map((m) => {
+        const legend = activeSources().filter((s) => dataBySource(s).some((row) => row[m.key] != null)).map(sourceTag).join("");
+        return '<article class="panel chart-panel"><div class="panel-heading"><div><h3>' + m.title + '</h3><p>Série horária e origem identificada</p></div><span class="chart-unit">' + m.unit + '</span></div><div class="chart">' + chartMarkup(m) + '</div><div class="chart-legend">' + (legend || '<span class="section-caption">Sem valores para este filtro</span>') + '</div></article>';
+      }).join("");
+    }
+    function average(rows, key) {
+      const values = rows.map((r) => r[key]).filter((v) => Number.isFinite(v));
+      return values.length ? values.reduce((a, b) => a + b, 0) / values.length : null;
+    }
+    function renderStats() {
+      const chosen = activeSources();
+      $("stats").innerHTML = chosen.map((source) => {
+        const rows = dataBySource(source);
+        const avg = average(rows, "temperature");
+        const precip = source === "online" ? null : rows.reduce((sum, r) => sum + (Number(r.precipitation) || 0), 0);
+        return '<div class="stat-row">' + sourceTag(source) + '<span>' + rows.length.toLocaleString("pt-BR") + ' registros</span><strong>' + (avg == null ? "—" : fmt(avg) + " °C méd.") + '</strong><span>' + (precip == null ? "precipitação não somada" : fmt(precip) + " mm acum.") + '</span></div>';
+      }).join("") || '<p class="analysis-copy">Nenhum registro para este filtro.</p>';
+    }
+    function renderComparison() {
+      const days = [];
+      for (let back = 6; back >= 0; back--) {
+        const day = new Date(nowHour); day.setDate(day.getDate() - back); day.setHours(0, 0, 0, 0);
+        const end = new Date(day.getTime() + 24 * 3600000);
+        days.push({ day, end });
+      }
+      const series = activeSources().map((source) => ({ source, vals: days.map(({ day, end }) => average(dataBySource(source).filter((r) => new Date(r.timestamp) >= day && new Date(r.timestamp) < end), "temperature")) }));
+      const vals = series.flatMap((s) => s.vals.filter((v) => v != null));
+      if (!vals.length) { $("comparison").innerHTML = '<p class="analysis-copy">Sem dados suficientes para comparar este período.</p>'; return; }
+      const min = Math.min(...vals), max = Math.max(...vals);
+      $("comparison").innerHTML = days.map((d, i) => {
+        const bars = series.map((s) => {
+          const val = s.vals[i];
+          if (val == null) return "";
+          const width = Math.max(4, (val - min + 1) / Math.max(1, max - min + 1) * 100);
+          return '<div class="compare-source">' + sourceTag(s.source) + '<span class="bar-track"><span class="bar-fill" style="display:block;width:' + width + '%;background:' + sources[s.source].color + '"></span></span><b>' + fmt(val) + '°</b></div>';
+        }).join("");
+        return '<div class="compare-day"><strong>' + d.day.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) + '</strong><div class="compare-bars">' + (bars || '<span class="section-caption">Sem dados</span>') + '</div></div>';
+      }).join("");
+    }
+    function linearTrend(rows) {
+      const data = rows.filter((r) => Number.isFinite(r.temperature)).slice(-72);
+      if (data.length < 3) return [];
+      const xs = data.map((_, i) => i), ys = data.map((r) => r.temperature);
+      const mx = xs.reduce((a, b) => a + b, 0) / xs.length, my = ys.reduce((a, b) => a + b, 0) / ys.length;
+      const slope = xs.reduce((sum, x, i) => sum + (x - mx) * (ys[i] - my), 0) / Math.max(1, xs.reduce((sum, x) => sum + (x - mx) ** 2, 0));
+      return [1, 2, 3].map((n) => ({ timestamp: new Date(new Date(data[data.length - 1].timestamp).getTime() + n * 3600000).toISOString(), temperature: my + slope * (xs.length - 1 + n - mx) }));
+    }
+    function renderAnalysisAndForecast() {
+      const selected = selectedSource();
+      const sourcesToAnalyze = selected === "all" ? ["simulated", "online"] : [selected];
+      $("analysis").innerHTML = sourcesToAnalyze.map((source) => {
+        const values = dataBySource(source).map((r) => r.temperature).filter((v) => Number.isFinite(v));
+        if (values.length < 3) return '<p class="analysis-copy">' + sourceTag(source) + ' · há poucos dados para avaliar uma anomalia estatística.</p>';
+        const mean = values.reduce((a, b) => a + b, 0) / values.length;
+        const std = Math.sqrt(values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length);
+        const latest = values[values.length - 1], z = std ? (latest - mean) / std : 0;
+        const label = Math.abs(z) >= 3 ? "Possível anomalia estatística" : "Sem anomalia pelo limite didático";
+        return '<div class="analysis-highlight">' + sourceTag(source) + '<div><b>' + label + '</b><small>' + values.length + ' pontos · z-score ' + fmt(z, 2) + ' · resultado exploratório</small></div></div>';
+      }).join("");
+      const forecastRows = selected === "online" || selected === "all" ? state.forecastOnline : [];
+      const trend = selected === "simulated" || selected === "all" ? linearTrend(dataBySource("simulated")) : [];
+      const forecasts = forecastRows.map((r) => ({ source: "online", timestamp: r.timestamp, temperature: r.temperature })).concat(trend.map((r) => ({ source: "simulated", timestamp: r.timestamp, temperature: r.temperature }))).slice(0, 7);
+      $("forecast").innerHTML = forecasts.length ? forecasts.map((f) => '<div class="stat-row">' + sourceTag(f.source) + '<span>' + dLabel(f.timestamp, { day: undefined, month: undefined }) + '</span><strong>' + fmt(f.temperature) + ' °C</strong></div>').join("") : '<p class="analysis-copy">Escolha “Simulados” ou “Open-Meteo”. A estimativa online depende da disponibilidade da fonte externa.</p>';
+      $("analysis").insertAdjacentHTML("beforeend", '<p class="external-note">Z-score e tendência linear são recursos experimentais para demonstração acadêmica. Não constituem alerta ou previsão meteorológica profissional.</p>');
+    }
+    function renderHistory() {
+      const rows = visibleRows().slice(-24).reverse();
+      $("table-caption").textContent = rows.length + " registros recentes";
+      $("history").innerHTML = rows.length ? rows.map((r) => '<tr><td>' + dLabel(r.timestamp) + '</td><td>' + sourceTag(r.data_source) + '</td><td>' + fmt(r.temperature) + ' °C</td><td>' + fmt(r.humidity) + '%</td><td>' + fmt(r.pressure) + ' hPa</td><td>' + fmt(r.wind_speed) + ' km/h</td><td>' + fmt(r.precipitation) + ' mm</td></tr>').join("") : '<tr><td colspan="7" class="empty-table">' + (selectedSource() === "esp32" ? "Nenhuma leitura física recebida. A área será preenchida após a conexão do ESP32." : "Nenhuma medição no intervalo selecionado.") + '</td></tr>';
+      $("count").textContent = visibleRows().length.toLocaleString("pt-BR");
+    }
+    function renderOnlineCard() {
+      const c = state.currentOnline;
+      $("online-badge").textContent = c ? "atualizada" : "indisponível";
+      if (!c) {
+        $("online-current").innerHTML = '<div class="chart-empty" style="height:150px">' + (state.onlineError ? "A fonte externa está indisponível agora. Os dados simulados continuam funcionando." : "Consultando a fonte externa…") + '</div>';
+        return;
+      }
+      const pairs = [["Temperatura", c.temperature, "°C"], ["Umidade", c.humidity, "%"], ["Pressão", c.pressure, "hPa"], ["Vento", c.wind_speed, "km/h"]];
+      $("online-current").innerHTML = '<div class="external-current">' + pairs.map((p) => '<div><span>' + p[0] + '</span><strong>' + fmt(p[1]) + ' ' + p[2] + '</strong></div>').join("") + '</div>';
+      $("online-note").textContent = "Referência modelada para a região · horário da estimativa " + dLabel(c.timestamp) + " · não é leitura direta de sensor.";
+    }
+    function render() {
+      renderMetrics(); renderCharts(); renderStats(); renderComparison(); renderAnalysisAndForecast(); renderHistory();
+      const physicalNote = $("physical-note");
+      if (state.esp32Error) {
+        physicalNote.hidden = false;
+        physicalNote.textContent = "A API configurada para medições do ESP32 não respondeu (" + state.esp32Error + "). As séries simuladas e a referência online continuam independentes.";
+      } else if (state.esp32.length) {
+        physicalNote.hidden = false;
+        physicalNote.textContent = state.esp32.length + " medições físicas do ESP32 recebidas da API configurada; esta série permanece separada das fontes simulada e online.";
+      } else {
+        physicalNote.hidden = true;
+        physicalNote.textContent = "";
+      }
+      $("updated").textContent = "Dados atualizados " + new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" }).format(new Date());
+    }
+    function setRange(hours) {
+      const end = new Date();
+      const start = new Date(end.getTime() - Number(hours) * 3600000);
+      $("start").value = localValue(start); $("end").value = localValue(end);
+      document.querySelectorAll("[data-range]").forEach((b) => b.classList.toggle("active", b.dataset.range === String(hours)));
+      render();
+    }
+    function downloadCsv() {
+      const rows = visibleRows();
+      const headers = ["timestamp", "data_source", "temperature_c", "humidity_percent", "pressure_hpa", "wind_speed_kmh", "precipitation_mm", "luminosity_adc", "air_quality_raw_adc"];
+      const lines = [headers.join(";")].concat(rows.map((r) => [r.timestamp, r.data_source, r.temperature, r.humidity, r.pressure, r.wind_speed, r.precipitation, r.luminosity, r.air_quality_raw].map((x) => x == null ? "" : String(x).replace(".", ",")).join(";")));
+      const blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob), link = document.createElement("a");
+      link.href = url; link.download = "climaurbano-dados-filtrados.csv"; link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    async function refreshOnline() {
+      $("status").innerHTML = "<i></i>Atualizando dados";
+      $("refresh").disabled = true;
+      await Promise.all([loadOnline(), loadPhysical()]);
+      renderOnlineCard(); render();
+      $("status").innerHTML = state.esp32.length ? "<i></i>Dados físicos, simulação e referência online" : state.currentOnline ? "<i></i>Simulador e referência online disponíveis" : "<i></i>Demonstração simulada disponível";
+      $("refresh").disabled = false;
+    }
+    state.simulated = makeSimulated();
+    const endDefault = new Date();
+    $("end").value = localValue(endDefault);
+    $("start").value = localValue(new Date(endDefault.getTime() - 7 * 24 * 3600000));
+    $("source").addEventListener("change", render);
+    $("start").addEventListener("change", render); $("end").addEventListener("change", render);
+    document.querySelectorAll("[data-range]").forEach((b) => b.addEventListener("click", () => setRange(b.dataset.range)));
+    $("refresh").addEventListener("click", refreshOnline);
+    $("download").addEventListener("click", downloadCsv);
+    render();
+    refreshOnline();
+    setInterval(refreshOnline, 5 * 60 * 1000);
+  </script>
+</body>
+</html>
