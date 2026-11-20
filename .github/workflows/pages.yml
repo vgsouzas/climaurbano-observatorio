@@ -1,0 +1,40 @@
+name: Publicar painel ClimaUrbano
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obter arquivos do painel
+        uses: actions/checkout@v4
+      - name: Preparar GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Criar saída estática
+        run: |
+          mkdir -p dist
+          cp index.html dist/index.html
+      - name: Enviar arquivos estáticos
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+      - name: Publicar painel
+        id: deployment
+        uses: actions/deploy-pages@v4
